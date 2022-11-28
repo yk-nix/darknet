@@ -220,23 +220,24 @@ void draw_bbox(image a, box bbox, int w, float r, float g, float b)
     }
 }
 
-image **load_alphabet()
-{
+image **load_alphabet(const char *alphabet_dir) {
     int i, j;
     const int nsize = 8;
     image **alphabets = calloc(nsize, sizeof(image));
+    if(alphabet_dir == NULL)
+    	alphabet_dir = "data/labels";
     for(j = 0; j < nsize; ++j){
         alphabets[j] = calloc(128, sizeof(image));
         for(i = 32; i < 127; ++i){
             char buff[256];
-            sprintf(buff, "data/labels/%d_%d.png", i, j);
+            sprintf(buff, "%s/%d_%d.png", alphabet_dir, i, j);
             alphabets[j][i] = load_image_color(buff, 0, 0);
         }
     }
     return alphabets;
 }
 
-void draw_detections(image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes)
+void draw_detections(image im, detection *dets, int num, float thresh, const char **names, image **alphabet, int classes)
 {
     int i,j;
 
@@ -1314,7 +1315,7 @@ image load_image_stb(char *filename, int channels)
     return im;
 }
 
-image load_image(char *filename, int w, int h, int c)
+image load_image(const char *filename, int w, int h, int c)
 {
 #ifdef OPENCV
     image out = load_image_cv(filename, c);
@@ -1330,7 +1331,7 @@ image load_image(char *filename, int w, int h, int c)
     return out;
 }
 
-image load_image_color(char *filename, int w, int h)
+image load_image_color(const char *filename, int w, int h)
 {
     return load_image(filename, w, h, 3);
 }

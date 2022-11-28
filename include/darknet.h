@@ -584,7 +584,7 @@ typedef struct{
 } box_label;
 
 
-network *load_network(const char *cfg, const char *weights, int clear);
+
 load_args get_base_args(network *net);
 
 void free_data(data d);
@@ -684,16 +684,89 @@ void load_weights(network *net, const char *filename);
 void save_weights_upto(network *net, const char *filename, int cutoff);
 void load_weights_upto(network *net, const char *filename, int start, int cutoff);
 
+
+/*-------------------- image.c -------------------*/
+/* load alphabet pictures from directory of 'alphabet_dir'
+ */
+image **load_alphabet(const char *alphabet_dir);
+
+/* load an image and resize it as width as 'w', height as 'h'.
+ * if either 'w' or 'h' is 0, just keep the original size.
+ * Note that, 'c' is the image channel.
+ * This function always return a newly created image, if any error
+ * on accessing the image file, a default 10 x 10 x 3 empty image will
+ * be returned, and this image file will be recorded in a file named 'bad.list'
+ * (the caller is responsible to free the newly created image)
+ */
+image load_image(const char *filename, int w, int h, int c);
+
+/* the same function as 'load_image', but the channel argument is fixed as 3,
+ * which is for colorful image.
+ */
+image load_image_color(const char *filename, int w, int h);
+
+/* resize an image to specified size.
+ * (the caller is responsible to free the newly allocated resized image)
+ */
+image resize_image(image im, int w, int h);
+
+/* free an image
+ */
+void free_image(image m);
+
+/* show image if OPENCV is available, otherwise, save it as a file named as 'name'.
+ * note that, the 'ms' is the argument would passed to 'waitKey'.
+ */
+int show_image(image p, const char *name, int ms);
+
+
+/*-------------------- network.c -------------------*/
+/* create a network according to the configuration file 'cfg',
+ * and load the weights corresponding to the newly created network
+ * from 'weights' file, if 'weights' is not NULL. Note that, the 'clear'
+ * is flag to clear the net->seen value, if it is on(set to be none zero).
+ */
+network *load_network(const char *cfg, const char *weights, int clear);
+/* forward the network to get the predicted value.
+ */
+float *network_predict(network *net, float *input);
+/* get predicted boxes from the network 'net'.
+ * Note that, this function is should never be called before 'netowrk_predict'.
+ * arguments:
+ *   w, h     the image size, which is to be used to calculate the returned boxes' size.
+ *            note that, different network has different calculation approach, you should check
+ *            the detection-layer code to find out whether it should be normalized or not.
+ *   thresh   threshold value to select which bound-box should be choose
+ *   hier     TODO
+ *   map      TODO
+ *   relative TODO
+ *   num      return how many boxes we got.
+ */
+detection *get_network_boxes(network *net, int w, int h, float thresh, float hier, int *map, int relative, int *num);
+
+/* draw boxes on an image. the boxes are returned by 'get_network-boxes'.
+ */
+void draw_detections(image im, detection *dets, int num, float thresh, const char **names, image **alphabet, int classes);
+
+
+
+
+
+/*-------------------- box.c -------------------*/
+/* carry out NMS.
+ */
+void do_nms_sort(detection *dets, int total, int classes, float thresh);
+
 void zero_objectness(layer l);
 void get_region_detections(layer l, int w, int h, int netw, int neth, float thresh, int *map, float tree_thresh, int relative, detection *dets);
 int get_yolo_detections(layer l, int w, int h, int netw, int neth, float thresh, int *map, int relative, detection *dets);
 void free_network(network *net);
 void set_batch_network(network *net, int b);
 void set_temp_network(network *net, float t);
-image load_image(char *filename, int w, int h, int c);
-image load_image_color(char *filename, int w, int h);
+
+
 image make_image(int w, int h, int c);
-image resize_image(image im, int w, int h);
+
 void censor_image(image im, int dx, int dy, int w, int h);
 image letterbox_image(image im, int w, int h);
 image crop_image(image im, int dx, int dy, int w, int h);
@@ -705,7 +778,7 @@ image mask_to_rgb(image mask);
 int resize_network(network *net, int w, int h);
 void free_matrix(matrix m);
 void test_resize(char *filename);
-int show_image(image p, const char *name, int ms);
+
 image copy_image(image p);
 void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, float g, float b);
 float get_current_rate(network *net);
@@ -731,31 +804,31 @@ float box_iou(box a, box b);
 data load_all_cifar10();
 box_label *read_boxes(char *filename, int *n);
 box float_to_box(float *f, int stride);
-void draw_detections(image im, detection *dets, int num, float thresh, char **names, image **alphabet, int classes);
+
+
 
 matrix network_predict_data(network *net, data test);
-image **load_alphabet();
 image get_network_image(network *net);
-float *network_predict(network *net, float *input);
+
 
 int network_width(network *net);
 int network_height(network *net);
 float *network_predict_image(network *net, image im);
 void network_detect(network *net, image im, float thresh, float hier_thresh, float nms, detection *dets);
-detection *get_network_boxes(network *net, int w, int h, float thresh, float hier, int *map, int relative, int *num);
+
 void free_detections(detection *dets, int n);
 
 void reset_network_state(network *net, int b);
 
 char **get_labels(char *filename);
 void do_nms_obj(detection *dets, int total, int classes, float thresh);
-void do_nms_sort(detection *dets, int total, int classes, float thresh);
+
 
 matrix make_matrix(int rows, int cols);
 
 
 
-void free_image(image m);
+
 float train_network(network *net, data d);
 pthread_t load_data_in_thread(load_args args);
 void load_data_blocking(load_args args);
@@ -797,12 +870,6 @@ char *find_char_arg(int argc, char **argv, char *arg, char *def);
  * (the caller is responsible to free the new malloced memory)
  */
 char *basecfg(const char *cfgfile);
-
-/* func: convert list into an array, both each element of this array and the list point
- *       point to the same data.
- * (the caller is responsible to free the newly malloced memory of this array)
- */
-void **list_to_array(list *l);
 
 /* func: return top-k index in the 'index', which is sorted in the descending order.
  */
@@ -884,7 +951,32 @@ float sec(clock_t clocks);
 
 
 /*-------------------- list.c -------------------*/
+/* list is a double-direction link-list.
+ * note that, the list is thread-unsafe.
+ */
+/* create a list, with size = 0
+ */
+list *make_list();
+/* traverse list, and free data pointed by each node.
+ */
+void free_list_contents(list *l);
+/* free the whole list.
+ */
 void free_list(list *l);
+/* create a new node point to 'val', and append it to the list.
+ */
+void list_insert(list *l, void *val);
+/* extract the tail node.
+ */
+void *list_pop(list *l);
+/* extract the front node.
+ */
+void *list_pop_front(list *l);
+/* func: convert list into an array, both each element of this array and the list point
+ *       point to the same data.
+ * (the caller is responsible to free the newly malloced memory of this array)
+ */
+void **list_to_array(list *l);
 
 #ifdef __cplusplus
 }

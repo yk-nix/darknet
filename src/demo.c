@@ -129,7 +129,7 @@ void *detect_in_thread(void *ptr)
     printf("\nFPS:%.1f\n",fps);
     printf("Objects:\n\n");
     image display = buff[(buff_index+2) % 3];
-    draw_detections(display, dets, nboxes, demo_thresh, demo_names, demo_alphabet, demo_classes);
+    draw_detections(display, dets, nboxes, demo_thresh, (const char **)demo_names, demo_alphabet, demo_classes);
     free_detections(dets, nboxes);
 
     demo_index = (demo_index + 1)%demo_frame;
@@ -187,7 +187,7 @@ void *detect_loop(void *ptr)
 void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const char *filename, char **names, int classes, int delay, char *prefix, int avg_frames, float hier, int w, int h, int frames, int fullscreen)
 {
     //demo_frame = avg_frames;
-    image **alphabet = load_alphabet();
+    image **alphabet = load_alphabet(NULL);
     demo_names = names;
     demo_alphabet = alphabet;
     demo_classes = classes;
