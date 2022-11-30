@@ -516,7 +516,7 @@ typedef struct{
     float x, y, w, h;
 } box;
 
-typedef struct detection{
+typedef struct {
     box bbox;
     int classes;
     float *prob;
@@ -525,7 +525,7 @@ typedef struct detection{
     int sort_class;
 } detection;
 
-typedef struct matrix{
+typedef struct {
     int rows, cols;
     float **vals;
 } matrix;
@@ -719,6 +719,10 @@ void free_image(image m);
  */
 int show_image(image p, const char *name, int ms);
 
+/* copy an image.
+ */
+image copy_image(image p);
+
 
 /*-------------------- network.c -------------------*/
 /* create a network according to the configuration file 'cfg',
@@ -779,7 +783,7 @@ int resize_network(network *net, int w, int h);
 void free_matrix(matrix m);
 void test_resize(char *filename);
 
-image copy_image(image p);
+
 void draw_box_width(image a, int x1, int y1, int x2, int y2, int w, float r, float g, float b);
 float get_current_rate(network *net);
 void composite_3d(char *f1, char *f2, char *out, int delta);

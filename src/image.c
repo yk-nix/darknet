@@ -1291,7 +1291,7 @@ void test_resize(char *filename)
 }
 
 
-image load_image_stb(char *filename, int channels)
+image load_image_stb(const char *filename, int channels)
 {
     int w, h, c;
     unsigned char *data = stbi_load(filename, &w, &h, &c, channels);
