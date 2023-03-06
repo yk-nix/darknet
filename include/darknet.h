@@ -589,13 +589,13 @@ load_args get_base_args(network *net);
 
 void free_data(data d);
 
-typedef struct node{
+typedef struct node {
     void *val;
     struct node *next;
     struct node *prev;
 } node;
 
-typedef struct list{
+typedef struct {
     int size;
     node *front;
     node *back;
